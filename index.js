@@ -1,6 +1,6 @@
 const express = require("express");
-const http = require("http");
 require("dotenv").config();
+const superagent = require("superagent");
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -8,62 +8,113 @@ const port = process.env.PORT || 4000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 app.listen(port, () => {
-    console.log(`🌏 Server is running at http://localhost:${port}, GREAT!!!`);
-  });
+  console.log(`🌏 Server is running at http://localhost:${port}, GREAT!!!`);
+});
+
+app.get("/", (_, res) => {
+  res.status(200).send("Server is working.");
+});
+
+// Get a recipe for a meal
+// Get meals by categories
+// Get meals by area
+
+/** Fetching the movie */
+app.post("/getmovie", (req, res) => {
+  const movieToSearch = req.body?.queryResult?.parameters?.movie;
+
+  const api = encodeURI(
+    `${process.env.BASE_URL}/?t=${movieToSearch}&apiKey=${process.env.API_KEY}`
+  );
+
+  superagent
+    .post(api)
+    .then((apiRes) => {
+      let dataToSend = apiRes.body;
+      return response.json({
+        message: "Went through!!",
+        data: dataToSend,
+      });
+    })
+    .catch((error) => console.error(error));
+});
+
+/** Get a recipe for a meal */
+app.post("/get-recipe", (request, response) => {
+  let mealToSearch;
   
-  app.get("/", (_, res) => {
-    res.status(200).send("Server is working.");
-  });
+  if (request.body?.queryResult?.parameters) {
+    mealToSearch = request.body?.queryResult?.parameters?.recipe;
+  } else {
+    return false
+  }
 
+  const api = encodeURI(
+    `${process.env.BASE_RECIPE_URL}/search.php?s=${mealToSearch}`
+  );
 
+  superagent
+    .post(api)
+    .then((apiRes) => {
+      let dataToSend = apiRes.body;
+      return response.json({
+        message: "Went through!!",
+        data: dataToSend,
+      });
+    })
+    .catch((error) => console.error(error));
+});
 
-  app.post("/getmovie", (req, res) => {
-    let movieToSearch;
-    if (
-      req.body.queryResult &&
-      req.body.queryResult.parameters &&
-      req.body.queryResult.parameters.movie
-    ) {
-      movieToSearch = req.body.queryResult.parameters.movie;
-    } else {
-      movieToSearch = "";
-    }
+/** Get a recipes by categories */
+app.post("/get-recipe-category", (request, response) => {
+  // const mealToSearch = request.body?.queryResult?.parameters?.recipeCategory;
+  let mealToSearch;
+
+  if (request.body?.queryResult?.parameters) {
+    mealToSearch = request.body?.queryResult?.parameters?.recipeCategory;
+  } else {
+    return false
+  }
+  const api = encodeURI(
+    `${process.env.BASE_RECIPE_URL}/filter.php?c=${mealToSearch}`
+  );
+
+  superagent
+    .post(api)
+    .then((apiRes) => {
+      let dataToSend = apiRes.body;
+      return response.json({
+        message: "Went through!!",
+        data: dataToSend,
+      });
+    })
+    .catch((error) => console.error(error));
+});
+
+/** Get a recipes by area */
+app.post("/get-recipe-area", (request, response) => {
+  // const mealToSearch = request.body?.queryResult?.parameters?.recipeArea;
+  let mealToSearch;
+
+  if (request.body?.queryResult?.parameters) {
+    mealToSearch = request.body?.queryResult?.parameters?.recipeArea;
+  } else {
+    return false
+  }
   
-    const api = encodeURI(
-      `${process.env.BASE_URL}/?t=${movieToSearch}&apiKey=${process.env.API_KEY}`
-    );
-  
-    http.get(
-      api,
-      (responseFromAPI) => {
-        let completeResponse = "";
-        responseFromAPI.on("data", (chunk) => {
-          completeResponse += chunk;
-        });
-        responseFromAPI.on("end", () => {
-          const movie = JSON.parse(completeResponse);
-  
-          let dataToSend = movieToSearch;
-          dataToSend = `${movie.Title} was released in the year ${movie.Year}. It is directed by ${movie.Director} and stars ${movie.Actors}. Here some glimpse of the plot: ${movie.Plot}.`;
-  
-          return res.json({
-            fulfillmentText: dataToSend,
-            source: "getmovie",
-          });
-        });
-      },
-      (error) => {
-        return res.json({
-          fulfillmentText: "Could not get results at this time",
-          data: error,
-          source: "getmovie",
-        });
-      }
-    );
+  const api = encodeURI(
+    `${process.env.BASE_RECIPE_URL}/filter.php?a=${mealToSearch}`
+  );
 
-
-
-
-  });
+  superagent
+    .post(api)
+    .then((apiRes) => {
+      let dataToSend = apiRes.body;
+      return response.json({
+        message: "Went through!!",
+        data: dataToSend,
+      });
+    })
+    .catch((error) => console.error(error));
+});
