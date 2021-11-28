@@ -116,7 +116,7 @@ app.post("/recipes", (request, response) => {
           message: "Query Successful",
           fulfillmentText: `
         The name of the recipe is ${strMeal}.
-        It falls under the ${strCategory} category and its majorly made in the country ${strArea}.
+        It falls under the ${strCategory} category and it is a ${strArea}dish.
 
         The ingredients to make this meals are ${ingredientsArray
           .map((item) => item.ingredient)
@@ -185,7 +185,7 @@ app.post("/recipes", (request, response) => {
   }
 
   /** Get a random recipe */
-  if (randomRecipe) {
+  if (randomRecipe.toLowerCase() === "random") {
     const api = encodeURI(`${process.env.BASE_RECIPE_URL}/random.php`);
 
     const IsRandom = randomRecipe.toLowerCase() === "random" ? true : false;
@@ -223,7 +223,7 @@ app.post("/recipes", (request, response) => {
           message: "Successful",
           fulfillmentText: `
         The name of the recipe is ${strMeal}.
-        It falls under the ${strCategory} category and its majorly made in the country ${strArea}.
+        It falls under the ${strCategory} category and it is a ${strArea} dish.
 
         The ingredients to make this meals are ${ingredientsArray
           .map((item) => item.ingredient)
