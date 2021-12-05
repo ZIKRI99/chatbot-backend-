@@ -79,8 +79,7 @@ app.post("/recipes", (request, response) => {
   const recipeName = request.body?.queryResult?.parameters?.recipe;
   const recipeCategory = request.body?.queryResult?.parameters?.recipeCategory;
   const recipeArea = request.body?.queryResult?.parameters?.recipeArea;
-  const random = request.body?.queryResult?.parameters?.randomRecipe;
-  const randomRecipe = random.toLowerCase() === "random" ? random : null;
+  const randomRecipe = request.body?.queryResult?.parameters?.randomRecipe;
 
   /** Get a recipe for a meal */
   if (recipeName) {
@@ -191,13 +190,7 @@ app.post("/recipes", (request, response) => {
   }
 
   /** Get a random recipe */
-  if (!randomRecipe) {
-    return response.json({
-      message: "Successful",
-      fulfillmentText: 'No data found',
-    });
-
-  } else {
+  if (randomRecipe) {
     const api = encodeURI(`${process.env.BASE_RECIPE_URL}/random.php`);
 
     superagent
