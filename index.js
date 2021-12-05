@@ -42,6 +42,8 @@ const detectIntent = async (languageCode, queryText, sessionId) => {
   const responses = await sessionClient.detectIntent(request);
   const result = responses[0].queryResult;
 
+  console.log({ result: result.parameters.fields });
+
   return {
     response: result.fulfillmentText,
   };
@@ -61,12 +63,15 @@ app.post("/dialogflow-response", async (req, res) => {
   let queryText = req.body.queryText;
   let sessionId = req.body.sessionId;
 
-  let responseData = await detectIntent(languageCode, queryText, sessionId);
-
-  res.json({
-    message: "Successful",
-    data: responseData.response,
-  });
+  try {
+    let responseData = await detectIntent(languageCode, queryText, sessionId);
+    res.json({
+      message: "Successful",
+      data: responseData.response,
+    });
+  } catch (error) {
+    return error;
+  }
 });
 
 /* One API to get different response depending on the values or parameters passed */
@@ -74,7 +79,8 @@ app.post("/recipes", (request, response) => {
   const recipeName = request.body?.queryResult?.parameters?.recipe;
   const recipeCategory = request.body?.queryResult?.parameters?.recipeCategory;
   const recipeArea = request.body?.queryResult?.parameters?.recipeArea;
-  const randomRecipe = request.body?.queryResult?.parameters?.randomRecipe;
+  const random = request.body?.queryResult?.parameters?.randomRecipe;
+  const randomRecipe = random.toLowerCase() === "random" ? random : null;
 
   /** Get a recipe for a meal */
   if (recipeName) {
@@ -185,10 +191,14 @@ app.post("/recipes", (request, response) => {
   }
 
   /** Get a random recipe */
-  if (randomRecipe.toLowerCase() === "random") {
-    const api = encodeURI(`${process.env.BASE_RECIPE_URL}/random.php`);
+  if (!randomRecipe) {
+    return response.json({
+      message: "Successful",
+      fulfillmentText: 'No data found',
+    });
 
-    const IsRandom = randomRecipe.toLowerCase() === "random" ? true : false;
+  } else {
+    const api = encodeURI(`${process.env.BASE_RECIPE_URL}/random.php`);
 
     superagent
       .post(api)
@@ -236,45 +246,8 @@ app.post("/recipes", (request, response) => {
   }
 });
 
-/** Get meal query options - will not be used for now */
-app.post("/get-meal-list", (request, response) => {
-  const keyword = request.body?.queryResult?.parameters?.keyword;
-
-  const keywordData =
-    keyword.toLowerCase() === "category"
-      ? "c"
-      : keyword.toLowerCase() === "country"
-      ? "a"
-      : keyword.toLowerCase() === "ingredients"
-      ? "i"
-      : null;
-
-  if (!keywordData) {
-    response.status(400).json({
-      error: "No valid keyword passed",
-    });
-    return false;
-  }
-
-  const api = encodeURI(
-    `${process.env.BASE_RECIPE_URL}/list.php?${keywordData}=list`
-  );
-
-  superagent
-    .post(api)
-    .then((apiRes) => {
-      let dataToSend = apiRes.body;
-
-      return response.json({
-        message: "Successful",
-        fulfillmentText: dataToSend,
-      });
-    })
-    .catch((error) => response.json({ error: error }));
-});
-
 app.listen(port, () => {
-  console.log(`🌏 Server is running at http://localhost:${port}, GREAT!!!`);
+  console.log(`Server is running at http://localhost:${port}, GREAT!!!`);
 });
 
 module.exports = app;
